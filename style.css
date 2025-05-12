@@ -1,0 +1,209 @@
+/* style.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/Nunito-Regular.woff2') format('woff2'),
+       url('./fonts/Nunito-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  src: url('./fonts/Nunito-Bold.woff2') format('woff2'),
+       url('./fonts/Nunito-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 800;
+  src: url('./fonts/Nunito-ExtraBold.woff2') format('woff2'),
+       url('./fonts/Nunito-ExtraBold.ttf') format('truetype');
+}
+
+body {
+  font-family: 'Nunito', Arial, sans-serif;
+  background: linear-gradient(135deg, #b0d3fa, #74bbfd);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  text-align: center;
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+}
+
+.game-header {
+  margin-bottom: 25px;
+}
+
+h1 {
+  color: #ff6b6b;
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  color: #4a4a4a;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+
+.grade-display {
+  background-color: #f0f7ff;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 15px 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #0086ff;
+}
+
+.button-grid,
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.grade-btn,
+.game-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  padding: 20px;
+  font-size: 1.2rem;
+  color: white;
+  background-color: #4facfe;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 6px 0 #2a86db;
+}
+
+.grade-btn:hover,
+.game-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 11px 0 #2a86db;
+  background-color: #3a9efd;
+}
+
+.grade-btn:active,
+.game-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #2a86db;
+}
+
+.grade-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+
+.grade-text {
+  font-size: 1.2rem;
+}
+
+.game-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.game-name {
+  font-weight: bold;
+}
+
+.back-btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  color: white;
+  background-color: #7f8c8d;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 20px;
+  box-shadow: 0 4px 0 #5f6a6a;
+}
+
+.back-btn:hover {
+  background-color: #6c7a7a;
+}
+
+.back-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #5f6a6a;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Animation */
+@keyframes bounce {
+
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-10px);
+  }
+
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.button-grid button,
+.game-grid button {
+  animation: bounce 2s infinite;
+  animation-delay: calc(var(--i, 0) * 0.2s);
+}
+
+.button-grid button:nth-child(1) {
+  --i: 0;
+}
+
+.button-grid button:nth-child(2) {
+  --i: 1;
+}
+
+.button-grid button:nth-child(3) {
+  --i: 2;
+}
+
+.game-grid button:nth-child(1) {
+  --i: 0;
+}
+
+.game-grid button:nth-child(2) {
+  --i: 1;
+}

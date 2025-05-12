@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Pizza Maker Game</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div class="container">
+            <h1>Pizza Maker Game</h1>
+            <p id="target-weight"></p>
+
+            <div class="pizza-container">
+                <img id="pizza" src="pizza-base.png" alt="Pizza Base" />
+                <div id="pizza-ingredients"></div>
+            </div>
+
+            <div class="ingredients">
+                <button
+                    class="ingredient-btn"
+                    data-weight="50"
+                    data-ingredient="cheese"
+                >
+                    Cheese (50g)
+                </button>
+                <button
+                    class="ingredient-btn"
+                    data-weight="30"
+                    data-ingredient="pepperoni"
+                >
+                    Pepperoni (30g)
+                </button>
+                <button
+                    class="ingredient-btn"
+                    data-weight="20"
+                    data-ingredient="mushroom"
+                >
+                    Mushrooms (20g)
+                </button>
+                <button
+                    class="ingredient-btn"
+                    data-weight="10"
+                    data-ingredient="olive"
+                >
+                    Olives (10g)
+                </button>
+                <button
+                    class="ingredient-btn"
+                    data-weight="40"
+                    data-ingredient="sauce"
+                >
+                    Tomato Sauce (40g)
+                </button>
+            </div>
+
+            <p id="current-weight">Current Weight: 0g</p>
+            <button id="check-button">Check Pizza</button>
+            <button id="clear-button">Clear Ingredients</button>
+            <a id="link-corre" href="../index.html"><button class="game-btn">Regresar</button></a>
+
+            <p id="result-message"></p>
+        </div>
+        <script src="script.js"></script>
+    </body>
+</html>

@@ -1,0 +1,53 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="es">
+ <head>
+ <meta charset="UTF-8" />
+ <title>Menú de Juegos</title>
+ <link rel="stylesheet" href="style.css" />
+ </head>
+ <body>
+ <div class="container">
+   <div class="game-header">
+     <h1>¡Menú de Juegos!</h1>
+     <div id="selected-grade" class="grade-display">
+       <p>Selecciona tu grado para empezar</p>
+     </div>
+   </div>
+   
+   <div id="grade-selection">
+     <h2>¿En qué grado estás?</h2>
+     <div class="button-grid">
+       <button class="grade-btn" data-grade="4to primaria">
+         <span class="grade-number">4°</span>
+         <span class="grade-text">Primaria</span>
+       </button>
+       <button class="grade-btn" data-grade="5to primaria">
+         <span class="grade-number">5°</span>
+         <span class="grade-text">Primaria</span>
+       </button>
+       <button class="grade-btn" data-grade="6to primaria">
+         <span class="grade-number">6°</span>
+         <span class="grade-text">Primaria</span>
+       </button>
+     </div>
+   </div>
+   
+   <div id="game-options" class="hidden">
+     <h2>¡Escoge un juego!</h2>
+     <div class="game-grid">
+       <button class="game-btn" id="link-corre" onclick="jugar('','1')">
+         <div class="game-icon">🏃</div>
+         <div class="game-name">Corre</div>
+       </button>
+       <button class="game-btn" id="link-escapa-laberinto" onclick="jugar('','3')">
+         <div class="game-icon">🌀</div>
+         <div class="game-name">Escapa del Laberinto</div>
+       </button>
+     </div>
+     <button id="back-button" class="back-btn">Cambiar grado</button>
+   </div>
+ </div>
+ <script src="script.js"></script>
+ </body>
+</html>
