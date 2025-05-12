@@ -1,0 +1,74 @@
+<html>
+	<head>
+		<title>Corre</title>
+		<!--link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,700" rel="stylesheet"-->
+		<script type="text/javascript" src="js/three.min.js"></script>
+        <script type="text/javascript" src="js/game.js"></script>
+		<link href="style.css" rel="stylesheet">
+		<link rel="stylesheet" href="../style.css" />
+	</head>
+	<body>
+		<div class="panel">
+			<!--div class="game-title">
+				<div class="title">Corre</div>
+				<div class="byline">base by <a target="_blank" href="https://wanfungchui.github.io/">wan fung chui</a></div>
+				<div class="byline">modified by <a target="_blank" href="https://ramrobot.github.io/">carlos ortiz</a></div>
+			</div-->
+			<div class="stat">
+				<label>Puntuación</label>
+				<p id="score">0</p>
+			</div>
+			<table id="controls">
+			  	<!--tr>
+			    	<td>Up:</td>
+			    	<td>Jump</td>
+			  	</tr-->
+			  	<tr>
+			    	<td>Izquierda:</td>
+			    	<td>Cambiar al carril izquierdo.</td>
+			  	</tr>
+			  	<tr>
+			    	<td>Derecha:</td>
+			    	<td>Cambiar al carril derecho.</td>
+			  	</tr>
+			  	<!--tr>
+			    	<td>P:</td>
+			    	<td>Pausar el juego.</td>
+			  	</tr-->
+			</table>
+			<table id="ranks"></table>
+		</div>
+		<div class="pregunta-respuesta">
+			<div id="pregunta-container">
+				<p id="pregunta" style="font-size: 2em;font-weight: 500;">Pregunta Ejemplo</p>
+			</div>
+			<div class="row">
+				<div class="box_1" id="respuesta_1">Respuesta 1</div>
+				<div class="box_2" id="respuesta_2">Respuesta 2</div>
+				<div class="box_3" id="respuesta_3">Respuesta 3</div>
+			</div>
+		</div>
+		
+		<div class="control-buttons">
+			<button class="game-btn" id="up">Iniciar<!--▲--></button>
+			<button class="game-btn" id="down">Reiniciar</button>
+			<a id="link-corre" href="../index.html"><button class="game-btn">Regresar</button></a>
+		  </div>
+		
+		<div id="world"></div>
+		<div class="animate-flicker" id="variable-content" style="font-size: 2em;">PRESIONA EL BOTON DE INICIAR PARA EMPEZAR</div>
+		<div class="arrow-container">
+			
+			<div class="row">
+				<button class="arrow-btn" id="left">◄</button>
+				<button class="arrow-btn" id="right">►</button>
+			</div>
+		</div>
+		<script>
+			document.getElementById('up').addEventListener('click', () => triggerKeyEvent('ArrowUp'));
+			document.getElementById('down').addEventListener('click', () => triggerKeyEvent('ArrowDown'));
+			document.getElementById('left').addEventListener('click', () => triggerKeyEvent('ArrowLeft'));
+			document.getElementById('right').addEventListener('click', () => triggerKeyEvent('ArrowRight'));
+		</script>
+	</body>
+</html>

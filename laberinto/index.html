@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clarity</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <script type="text/javascript" src="Clarity.js"></script>
+    <!--link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"-->
+</head>
+<body>
+    
+    <div id="pregunta-container">
+        <p id="pregunta" style="font-size: 55px;font-weight: 1000;"></p>
+        <!--button id="nueva-pregunta">Cambiar Pregunta</button-->
+    </div>
+
+    <div class="row">
+        <div class="box_1" id="respuesta_1">Respuesta 1</div>
+        <div class="box"><canvas id="canvas"></canvas></div>
+        <div class="box_2" id="respuesta_2">Respuesta 2</div>
+    </div>
+    <div class="row">
+        <div class="box_3" id="respuesta_3">Respuesta 3</div>
+    </div>
+    <p>
+        Usa las teclas de flecha izquierda, derecha y arriba para moverte. 🎮✨
+    </p>
+    <!--p class="info">
+        The map data is fully customisable and scriptable (all contained within the "map" variable). See the comments in the code for instructions.
+    </p-->
+    <div class="arrow-container">
+        <div class="row">
+            <button class="arrow-btn" id="left-up">↖</button>
+            <button class="arrow-btn" id="up">▲</button>
+            <button class="arrow-btn" id="right-up">↗</button>
+        </div>
+        <div class="row">
+            <button class="arrow-btn" id="left">◄</button>
+            <button class="arrow-btn" id="down">▼</button>
+            <button class="arrow-btn" id="right">►</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('keydown', (event) => {
+            console.log(`Key Pressed: ${event.key}`);
+        });
+    </script>
+
+    <a id="link-corre" href="../index.html"><button class="game-btn">Regresar</button></a>
+    <!--label for="viewport">
+    <input type="checkbox" id="viewport" onclick="game.limit_viewport=this.checked;" checked/> Confine viewport to map</label-->
+    
+    <script type="text/javascript">
+        window.requestAnimFrame =
+            window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
+            function(callback) {
+                return window.setTimeout(callback, 1000 / 60);
+        };
+        var canvas = document.getElementById('canvas'),
+            ctx    = canvas.getContext('2d');
+
+        canvas.width = window.screen.width/2;//700;
+        canvas.height = window.screen.height/4;//500;
+        
+        /* Customisable map data */
+
+        const preguntasAritmetica = {
+            "4to primaria": [
+                ["¿Cuánto es 7 + 5?", "10", "12", "14", 2],
+                ["¿Cuánto es 15 - 8?", "5", "7", "6", 2],
+                ["¿Cuánto es 9 + 6?", "14", "15", "13", 2],
+                ["¿Cuánto es 20 - 11?", "8", "9", "10", 2],
+                ["¿Cuánto es 13 + 7?", "18", "20", "19", 2],
+                ["¿Cuánto es 18 - 9?", "8", "10", "9", 3],
+                ["¿Cuánto es 25 + 5?", "30", "32", "28", 1],
+                ["¿Cuánto es 30 - 12?", "20", "18", "19", 2],
+                ["¿Cuánto es 6 + 14?", "21", "22", "20", 3],
+                ["¿Cuánto es 50 - 25?", "26", "24", "25", 3]
+            ],
+            "5to primaria": [
+                ["¿Cuánto es 45 + 27?", "72", "74", "73", 1],
+                ["¿Cuánto es 90 - 44?", "46", "45", "47", 1],
+                ["¿Cuánto es 120 + 38?", "157", "158", "160", 2],
+                ["¿Cuánto es 250 - 75?", "180", "175", "170", 3],
+                ["¿Cuánto es 33 + 19?", "52", "51", "53", 1],
+                ["¿Cuánto es 85 - 47?", "39", "40", "38", 3],
+                ["¿Cuánto es 123 + 77?", "199", "200", "198", 2],
+                ["¿Cuánto es 345 - 120?", "225", "223", "224", 1],
+                ["¿Cuánto es 78 + 34?", "111", "110", "112", 3],
+                ["¿Cuánto es 500 - 276?", "225", "224", "223", 2]
+            ],
+            "6to primaria": [
+                ["¿Cuánto es 245 + 134?", "378", "379", "377", 2],
+                ["¿Cuánto es 640 - 315?", "326", "325", "324", 2],
+                ["¿Cuánto es 512 + 288?", "801", "800", "799", 2],
+                ["¿Cuánto es 900 - 487?", "414", "413", "412", 2],
+                ["¿Cuánto es 1234 + 567?", "1800", "1801", "1802", 2],
+                ["¿Cuánto es 2048 - 1024?", "1024", "1025", "1023", 1],
+                ["¿Cuánto es 750 + 450?", "1201", "1199", "1200", 3],
+                ["¿Cuánto es 1800 - 795?", "1004", "1005", "1006", 2],
+                ["¿Cuánto es 999 + 1?", "999", "1001", "1000", 3],
+                ["¿Cuánto es 2050 - 1050?", "999", "1001", "1000", 3]
+            ]
+        };
+
+        var map = {
+        
+            tile_size: 20,
+        
+            /*
+            
+            Key vairables:
+            
+            id       [required] - an integer that corresponds with a tile in the data array.
+            colour   [required] - any javascript compatible colour variable.
+            solid    [optional] - whether the tile is solid or not, defaults to false.
+            bounce   [optional] - how much velocity is preserved upon hitting the tile, 0.5 is half.
+            jump     [optional] - whether the player can jump while over the tile, defaults to false.
+            friction [optional] - friction of the tile, must have X and Y values (e.g {x:0.5, y:0.5}).
+            gravity  [optional] - gravity of the tile, must have X and Y values (e.g {x:0.5, y:0.5}).
+            fore     [optional] - whether the tile is drawn in front of the player, defaults to false.
+            script   [optional] - refers to a script in the scripts section, executed if it is touched.
+            
+            */
+            
+            keys: [
+                {id: 0, colour: '#333', solid: 0},
+                {id: 1, colour: '#888', solid: 0},
+                {id: 2,colour: '#555',solid: 1,bounce: 0.3},
+                {id: 3,colour: 'rgba(121, 220, 242, 0.4)',friction: {x: 0.9,y: 0.9},gravity: {x: 0,y: 0.1},jump: 1,fore: 1},
+                {id: 4,colour: '#777',jump: 1},
+                {id: 5,colour: '#E373FA',solid: 1,bounce: 1.1},
+                {id: 6,colour: '#666',solid: 1,bounce: 0},
+                {id: 7,colour: '#73C6FA',solid: 0,script: 'change_colour'},
+                {id: 8,colour: '#FADF73',solid: 0,script: 'next_level'},
+                {id: 9,colour: '#C93232',solid: 0,script: 'death'},
+                {id: 10,colour: '#555',solid: 1},
+                {id: 11,colour: '#0FF',solid: 0,script: 'unlock'},
+                {id: 12,colour: '#ffa07a',solid: 0,script: 'one'},
+                {id: 13,colour: '#add8e6',solid: 0,script: 'two'},
+                {id: 14,colour: '#32cd32',solid: 0,script: 'check'},
+                {id: 15,colour: '#98fb98',solid: 0,script: 'tree'}
+            ],
+        
+            /* An array representing the map tiles. Each number corresponds to a key */
+            data: [
+                /*[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 6, 6, 6, 6, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 7, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 4, 2, 2, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2, 2, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4, 2, 1, 2],
+                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 4, 2, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 4, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                [2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 4, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2],
+                [2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 4, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2],
+                [2, 1, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 4, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2],
+                [2, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 8, 1, 1, 1, 2],
+                [2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2],
+                [2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 9, 9, 9, 2, 10, 10, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 11, 2, 2, 2, 2, 4, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 10, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2],
+                [2, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 1, 1, 1, 1, 1, 1, 2],
+                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2],
+                [2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 6, 6, 2, 2, 2, 2, 2, 2, 6, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                [2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 2, 5, 5, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2],
+                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+                  */  
+                    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],  
+                    [2, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 13, 2],  
+                    [2, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 13, 2],  
+                    [2, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 13, 2],  
+                    [2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2],  
+                    [0, 0, 0, 0, 0, 2, 15, 15, 2, 0, 0, 0, 0, 2, 2, 1, 2],  
+                    [0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 14 ,2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 2, 2, 1, 1, 2, 2, 2, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 0, 2, 14, 2, 2, 0, 2, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 0, 2, 1, 2, 0, 0, 2, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 0, 2, 8, 2, 0, 0, 2, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 0, 2, 2, 2, 0, 0, 2, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 0, 0, 0, 0, 0, 0, 2, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 2, 2, 3, 3, 2, 2, 2, 3, 2],  
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 3, 3, 3, 3, 3, 3, 2, 3, 2],  
+                    [2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 3, 3, 3, 3, 3, 3, 2, 3, 2],  
+                    [2, 12, 12, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 3, 3, 3, 3, 3, 3, 2, 3, 2],  
+                    [2, 3, 3, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 1, 2, 3, 3, 3, 3, 3, 3, 2, 3, 2],  
+                    [2, 3, 3, 1, 1, 1, 1, 13, 2, 0, 0, 0, 0, 0, 2, 1, 2, 3, 3, 3, 3, 3, 3, 2, 3, 2],  
+                    [2, 3, 3, 1, 1, 1, 1, 13, 2, 0, 0, 0, 0, 0, 2, 1, 2, 3, 3, 3, 3, 3, 3, 2, 3, 2],  
+                    [2, 3, 3, 2, 2, 2, 2, 1, 2, 0, 0, 0, 0, 0, 2, 1, 2, 3, 3, 3, 3, 3, 3, 2, 3, 2],  
+                    [2, 3, 3, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 3, 3, 3, 3, 3, 3, 2, 3, 2],  
+                    [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 2, 3, 2],  
+                    [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 12, 12, 15, 15, 13, 13, 2, 3, 2], 
+                    [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2],  
+                    [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 14, 1, 1, 1, 2],  
+                    [2, 5, 5, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], 
+                    [2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 15, 2, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0]  
+            ],
+        
+            /* Default gravity of the map */
+            
+            gravity: {
+                x: 0,
+                y: 0.45
+            },
+            
+            /* Velocity limits */
+        
+            vel_limit: {
+                x: 2,
+                y: 16
+            },
+        
+            /* Movement speed when the key is pressed */
+            
+            movement_speed: {
+                jump: 6,
+                left: 0.3,
+                right: 0.3
+            },
+            
+            /* The coordinates at which the player spawns and the colour of the player */
+        
+            player: {
+                x: 3,
+                y: 2,
+                colour: '#FF9900'
+            },
+            
+            /* scripts refered to by the "script" variable in the tile keys */
+        
+            scripts: {
+                change_colour: 'this.player.colour = "#"+(Math.random()*0xFFFFFF<<0).toString(16);',
+                /* you could load a new map variable here */
+                next_level: 'alert("Yay! You won! Reloading map.");this.load_map(map);',
+                death: 'alert("You died!");this.load_map(map);',
+                unlock: 'this.current_map.keys[10].solid = 0;this.current_map.keys[10].colour = "#888";',
+                one: 'this.player.colour = "#ff0000";opcionUno();',
+                two: 'this.player.colour = "#0000ff";opcionDos();',
+                tree: 'this.player.colour = "#008000";opcionTres();',
+                check: 'if(respuesta == respuesta_correcta){console.log("Yay! You won! Reloading map.");this.player.colour = "#FF9900";respuesta = 0;}else{alert("You died!");this.load_map(map);}mostrarPregunta();'
+            }
+        };
+
+        
+        let keyIntervals = {};
+        /* Setup of the engine */
+        
+        var game = new Clarity();
+        game.set_viewport(canvas.width, canvas.height);
+        game.load_map(map);
+
+        /* Limit the viewport to the confines of the map */
+        
+        game.limit_viewport = false;
+
+        var Loop = function() {
+
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            game.update();
+            game.draw(ctx);
+
+            window.requestAnimFrame(Loop);
+        };
+
+        //document.getElementById('up').addEventListener('click', () => game.triggerKeyEvent(38));
+        //document.getElementById('left').addEventListener('click', () => game.triggerKeyEvent(37));
+        //document.getElementById('right').addEventListener('click', () => game.triggerKeyEvent(39));
+
+        function startKeyEvent(key) {
+            console.log(key);
+            var keyValue = "";
+            if(key == "Up"){
+                keyValue = 38;
+            }else if(key == "Left"){
+                keyValue = 37;
+            }else if(key == "Right"){
+                keyValue = 39;
+            }else if (key == "UpRight"){
+                keyValue = 3939;
+            }else if (key == "UpLeft"){
+                keyValue = 3737;
+            }
+            if (!keyIntervals[key]) {
+                keyIntervals[key] = setInterval(() => {
+                    document.dispatchEvent(new KeyboardEvent('keydown', { key: key, code: `Arrow${key}`, bubbles: true }));
+                    game.triggerKeyEvent(keyValue);
+                }, 100); 
+            }
+        }
+
+        function stopKeyEvent(key) {
+            console.log(key);
+            var keyValue = "";
+            if(key == "Up"){
+                keyValue = 38;
+            }else if(key == "Left"){
+                keyValue = 37;
+            }else if(key == "Right"){
+                keyValue = 39;
+            }else if (key == "UpRight"){
+                keyValue = 3939;
+            }else if (key == "UpLeft"){
+                keyValue = 3737;
+            }
+            clearInterval(keyIntervals[key]);
+            delete keyIntervals[key];
+            game.triggerStopKeyEvent(keyValue);
+            document.dispatchEvent(new KeyboardEvent('keyup', { key: key, code: `Arrow${key}`, bubbles: true }));
+        }
+
+
+        function addButtonListeners(buttonId, key) {
+            const button = document.getElementById(buttonId);
+            button.addEventListener('mousedown', () => startKeyEvent(key));
+            button.addEventListener('mouseup', () => stopKeyEvent(key));
+            button.addEventListener('mouseleave', () => stopKeyEvent(key)); // Stops event if mouse leaves the button
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevents accidental scrolling
+                startKeyEvent(key);
+            });
+            button.addEventListener('touchend', () => stopKeyEvent(key));
+        }
+
+        addButtonListeners('up', 'Up');
+        addButtonListeners('down', 'Down');
+        addButtonListeners('left', 'Left');
+        addButtonListeners('right', 'Right');
+        addButtonListeners('right-up', 'UpRight'); // Diagonal Right Up
+        addButtonListeners('left-up', 'UpLeft');  // Diagonal Left Up
+
+        /* Start */
+        
+        Loop();
+        
+    </script>
+    <script>
+        // Función para obtener el parámetro del URL
+    function getGradoFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("grado");
+    }
+
+    var respuesta = "";
+    var respuesta_correcta = "";
+
+    // Función para mostrar una pregunta aleatoria del grado seleccionado
+    function mostrarPregunta() {
+      const grado = getGradoFromUrl();
+      const preguntas = preguntasAritmetica[grado];
+      if (!preguntas) {
+        alert("Grado no encontrado.");
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * preguntas.length);
+      const pregunta = preguntas[randomIndex];
+      const preguntaContainer = document.getElementById("pregunta");
+      respuesta_correcta = pregunta[4]
+      preguntaContainer.innerHTML = `${pregunta[0]}`;
+      document.getElementById("respuesta_1").innerText = `1) ${pregunta[1]}`;
+      document.getElementById("respuesta_2").innerText = `2) ${pregunta[2]}`;
+      document.getElementById("respuesta_3").innerText = `3) ${pregunta[3]}`;
+
+        document.getElementById("respuesta_1").classList.add("box_1");
+        document.getElementById("respuesta_1").classList.remove("box_1_glow");
+        document.getElementById("respuesta_2").classList.remove("box_2_glow");
+        document.getElementById("respuesta_2").classList.add("box_2");
+        document.getElementById("respuesta_3").classList.remove("box_3_glow");
+        document.getElementById("respuesta_3").classList.add("box_3");
+    }
+
+    function check(){
+        if(respuesta == respuesta_correcta){alert("Yay! You won! Reloading map.");}else{alert("You died!");this.load_map(map);}
+    }
+
+
+    function opcionUno(){
+        respuesta = 1;
+        console.log(respuesta);
+        
+        document.getElementById("respuesta_1").classList.remove("box_1");
+        document.getElementById("respuesta_1").classList.add("box_1_glow");
+
+        document.getElementById("respuesta_2").classList.remove("box_2_glow");
+        document.getElementById("respuesta_2").classList.add("box_2");
+        document.getElementById("respuesta_3").classList.remove("box_3_glow");
+        document.getElementById("respuesta_3").classList.add("box_3");
+    }
+
+    function opcionDos(){
+        respuesta = 2;
+        console.log(respuesta);
+
+        document.getElementById("respuesta_2").classList.remove("box_2");
+        document.getElementById("respuesta_2").classList.add("box_2_glow");
+
+        document.getElementById("respuesta_1").classList.remove("box_1_glow");
+        document.getElementById("respuesta_1").classList.add("box_1");
+        document.getElementById("respuesta_3").classList.remove("box_3_glow");
+        document.getElementById("respuesta_3").classList.add("box_3");
+
+
+    }
+
+    function opcionTres(){
+        respuesta = 3;
+        console.log(respuesta);
+        
+        document.getElementById("respuesta_3").classList.remove("box_3");
+        document.getElementById("respuesta_3").classList.add("box_3_glow");
+
+        document.getElementById("respuesta_1").classList.remove("box_1_glow");
+        document.getElementById("respuesta_1").classList.add("box_1");
+        document.getElementById("respuesta_2").classList.remove("box_2_glow");
+        document.getElementById("respuesta_2").classList.add("box_2");
+
+    }
+    // Llamar la función inicial para mostrar la pregunta
+    mostrarPregunta();
+
+    // Cambiar la pregunta cada vez que el usuario haga clic en el botón
+    //document.getElementById("nueva-pregunta").addEventListener("click", mostrarPregunta);
+  
+    </script>
+    <script>
+        // Add this code to your JavaScript file or in a script tag at the end of your HTML
+
+// Create the joystick container
+function createJoystick() {
+  // Remove existing arrow controls if present
+  const existingArrowContainer = document.querySelector('.arrow-container');
+  if (existingArrowContainer) {
+    existingArrowContainer.remove();
+  }
+  
+  // Create joystick container
+  const joystickContainer = document.createElement('div');
+  joystickContainer.className = 'joystick-container';
+  
+  // Create joystick elements
+  const joystickBase = document.createElement('div');
+  joystickBase.className = 'joystick-base';
+  
+  const joystickHandle = document.createElement('div');
+  joystickHandle.className = 'joystick-handle';
+  joystickHandle.innerHTML = '⊕';
+  
+  // Append elements
+  joystickBase.appendChild(joystickHandle);
+  joystickContainer.appendChild(joystickBase);
+  document.body.appendChild(joystickContainer);
+  
+  // Initialize drag control functionality
+  initDragControl(joystickBase, joystickHandle);
+}
+
+// Initialize drag control
+function initDragControl(base, handle) {
+  let isDragging = false;
+  let startX, startY;
+  let currentDirection = null;
+  let baseRect = base.getBoundingClientRect();
+  const centerX = baseRect.width / 2;
+  const centerY = baseRect.height / 2;
+  const maxDistance = baseRect.width / 2.5; // Maximum distance joystick can move
+  
+  // Set initial handle position to center
+  handle.style.transform = `translate(0px, 0px)`;
+  
+  // Update position on window resize
+  window.addEventListener('resize', () => {
+    baseRect = base.getBoundingClientRect();
+  });
+  
+  // Start dragging
+  handle.addEventListener('mousedown', startDrag);
+  handle.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startDrag(e.touches[0]);
+  });
+  
+  // Move joystick
+  window.addEventListener('mousemove', drag);
+  window.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    drag(e.touches[0]);
+  }, { passive: false });
+  
+  // End dragging
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchend', endDrag);
+  window.addEventListener('touchcancel', endDrag);
+  
+  function startDrag(e) {
+    isDragging = true;
+    startX = e.clientX - baseRect.left;
+    startY = e.clientY - baseRect.top;
+  }
+  
+  function drag(e) {
+    if (!isDragging) return;
+    
+    let moveX = e.clientX - baseRect.left - startX;
+    let moveY = e.clientY - baseRect.top - startY;
+    
+    // Calculate distance from center
+    const distance = Math.sqrt(moveX * moveX + moveY * moveY);
+    
+    // Limit distance
+    if (distance > maxDistance) {
+      const angle = Math.atan2(moveY, moveX);
+      moveX = Math.cos(angle) * maxDistance;
+      moveY = Math.sin(angle) * maxDistance;
+    }
+    
+    // Move handle
+    handle.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    
+    // Determine direction
+    determineDirection(moveX, moveY);
+  }
+  
+  function endDrag() {
+    if (!isDragging) return;
+    
+    isDragging = false;
+    
+    // Return handle to center with animation
+    handle.style.transition = 'transform 0.2s ease-out';
+    handle.style.transform = 'translate(0px, 0px)';
+    
+    // Reset after animation completes
+    setTimeout(() => {
+      handle.style.transition = '';
+      
+      // Stop all movement
+      if (currentDirection) {
+        stopMovement(currentDirection);
+        currentDirection = null;
+      }
+    }, 200);
+  }
+  
+  function determineDirection(x, y) {
+    // Calculate angle in degrees (0 is right, going clockwise)
+    let angle = Math.atan2(y, x) * 180 / Math.PI;
+    if (angle < 0) angle += 360;
+    
+    // Minimum distance from center to trigger movement
+    const minDistance = maxDistance * 0.3;
+    const distance = Math.sqrt(x * x + y * y);
+    
+    let newDirection = null;
+    
+    // Only trigger movement if joystick is moved enough
+    if (distance > minDistance) {
+      // Determine direction based on angle
+      if (angle >= 337.5 || angle < 22.5) newDirection = 'Right';
+      else if (angle >= 22.5 && angle < 67.5) newDirection = 'DownRight';
+      else if (angle >= 67.5 && angle < 112.5) newDirection = 'Down';
+      else if (angle >= 112.5 && angle < 157.5) newDirection = 'DownLeft';
+      else if (angle >= 157.5 && angle < 202.5) newDirection = 'Left';
+      else if (angle >= 202.5 && angle < 247.5) newDirection = 'UpLeft';
+      else if (angle >= 247.5 && angle < 292.5) newDirection = 'Up';
+      else if (angle >= 292.5 && angle < 337.5) newDirection = 'UpRight';
+    }
+    
+    // If direction changed, update movement
+    if (newDirection !== currentDirection) {
+      if (currentDirection) {
+        stopMovement(currentDirection);
+      }
+      currentDirection = newDirection;
+      if (currentDirection) {
+        startMovement(currentDirection);
+      }
+    }
+  }
+  
+  function startMovement(direction) {
+    // Map direction to key code
+    let keyValue;
+    if (direction === 'Up') keyValue = 38;
+    else if (direction === 'Down') keyValue = 40;
+    else if (direction === 'Left') keyValue = 37;
+    else if (direction === 'Right') keyValue = 39;
+    else if (direction === 'UpRight') keyValue = 3839;
+    else if (direction === 'UpLeft') keyValue = 3837;
+    else if (direction === 'DownRight') keyValue = 4039;
+    else if (direction === 'DownLeft') keyValue = 4037;
+    
+    // Call the game's movement function if it exists
+    if (typeof startKeyEvent === 'function') {
+      startKeyEvent(direction);
+    } else if (window.game && typeof window.game.triggerKeyEvent === 'function') {
+      // Fallback to direct game control if available
+      window.game.triggerKeyEvent(keyValue);
+    } else {
+      // Dispatch keyboard event as fallback
+      document.dispatchEvent(new KeyboardEvent('keydown', { 
+        key: direction.toLowerCase(), 
+        code: `Arrow${direction}`, 
+        keyCode: keyValue,
+        bubbles: true 
+      }));
+    }
+  }
+  
+  function stopMovement(direction) {
+    // Map direction to key code
+    let keyValue;
+    if (direction === 'Up') keyValue = 38;
+    else if (direction === 'Down') keyValue = 40;
+    else if (direction === 'Left') keyValue = 37;
+    else if (direction === 'Right') keyValue = 39;
+    else if (direction === 'UpRight') keyValue = 3839;
+    else if (direction === 'UpLeft') keyValue = 3837;
+    else if (direction === 'DownRight') keyValue = 4039;
+    else if (direction === 'DownLeft') keyValue = 4037;
+    
+    // Call the game's movement stop function if it exists
+    if (typeof stopKeyEvent === 'function') {
+      stopKeyEvent(direction);
+    } else if (window.game && typeof window.game.triggerStopKeyEvent === 'function') {
+      // Fallback to direct game control if available
+      window.game.triggerStopKeyEvent(keyValue);
+    } else {
+      // Dispatch keyboard event as fallback
+      document.dispatchEvent(new KeyboardEvent('keyup', { 
+        key: direction.toLowerCase(), 
+        code: `Arrow${direction}`, 
+        keyCode: keyValue,
+        bubbles: true 
+      }));
+    }
+  }
+}
+
+// Initialize joystick control when DOM is loaded
+document.addEventListener('DOMContentLoaded', createJoystick);
+    </script>
+</body>
+
+</html>
