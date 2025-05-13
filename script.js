@@ -66,10 +66,10 @@ function jugar(grado, juego) {
     setTimeout(() => {
       switch(juego) {
         case "1":
-          window.location.href = `./Boxy-Run/index.html?grado=${grado}`;
+          window.location.href = `./corre/index.html?grado=${grado}`;
           break;
         case "3":
-          window.location.href = `./Clarity/index.html?grado=${grado}`;
+          window.location.href = `./laberinto/index.html?grado=${grado}`;
           break;
         default:
           console.log("Juego no encontrado");
